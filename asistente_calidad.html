@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Asistente de Calidad — Obra</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+:root {
+  --green:     #1A6B47;
+  --green-l:   #E8F3EE;
+  --green-m:   #C0DDD0;
+  --red:       #C0392B;
+  --red-l:     #FDF1F0;
+  --amber:     #B45309;
+  --amber-l:   #FEF3C7;
+  --gray-900:  #111827;
+  --gray-600:  #4B5563;
+  --gray-400:  #9CA3AF;
+  --gray-100:  #F3F4F6;
+  --gray-50:   #F9FAFB;
+  --white:     #FFFFFF;
+  --radius:    12px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-disp: 'DM Serif Display', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--gray-50);
+  color: var(--gray-900);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ───────────────────────────────────────────── */
+.header {
+  background: var(--white);
+  border-bottom: 1px solid #E5E7EB;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.logo {
+  width: 36px; height: 36px;
+  background: var(--green);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo svg { width: 20px; height: 20px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.header-text h1 { font-family: var(--font-disp); font-size: 17px; font-weight: 400; line-height: 1.2; }
+.header-text p { font-size: 12px; color: var(--gray-400); }
+.offline-badge {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500;
+  color: var(--green);
+  background: var(--green-l);
+  padding: 4px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.offline-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+
+/* ── MAIN ────────────────────────────────────────────── */
+.main { flex: 1; max-width: 640px; width: 100%; margin: 0 auto; padding: 20px 16px 100px; }
+
+/* ── SEARCH BOX ──────────────────────────────────────── */
+.search-wrap {
+  background: var(--white);
+  border: 1.5px solid #E5E7EB;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .15s;
+  margin-bottom: 16px;
+}
+.search-wrap:focus-within { border-color: var(--green); }
+.search-inner { display: flex; align-items: flex-end; gap: 0; }
+.search-icon {
+  padding: 12px 12px 12px 14px;
+  color: var(--gray-400);
+  flex-shrink: 0;
+  align-self: center;
+}
+.search-icon svg { width: 18px; height: 18px; display: block; }
+textarea#query {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--gray-900);
+  background: transparent;
+  resize: none;
+  padding: 12px 0;
+  min-height: 48px;
+  max-height: 140px;
+}
+textarea#query::placeholder { color: var(--gray-400); }
+.search-btn {
+  margin: 8px;
+  width: 40px; height: 40px;
+  background: var(--green);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: opacity .15s, transform .1s;
+}
+.search-btn:hover { opacity: .88; }
+.search-btn:active { transform: scale(.95); }
+.search-btn:disabled { opacity: .35; cursor: default; }
+.search-btn svg { width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── CHIPS ───────────────────────────────────────────── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
+.chip {
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid #E5E7EB;
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all .12s;
+  line-height: 1.3;
+}
+.chip:hover { border-color: var(--green-m); background: var(--green-l); color: var(--green); }
+
+/* ── RESULTS AREA ────────────────────────────────────── */
+.results { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── ESTADO VACÍO ────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gray-400);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+.empty p { font-size: 14px; line-height: 1.6; }
+.empty strong { color: var(--gray-600); font-weight: 500; }
+
+/* ── RESULT CARD ─────────────────────────────────────── */
+.result-card {
+  background: var(--white);
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: fadeUp .2s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.result-card:nth-child(2) { animation-delay: .05s; }
+.result-card:nth-child(3) { animation-delay: .10s; }
+.result-card:nth-child(4) { animation-delay: .15s; }
+
+.card-top {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.score-ring {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+  flex-shrink: 0;
+}
+.score-high  { background: var(--green-l);  color: var(--green); }
+.score-mid   { background: var(--amber-l);  color: var(--amber); }
+.score-low   { background: var(--gray-100); color: var(--gray-600); }
+
+.card-meta { flex: 1; min-width: 0; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.tag {
+  font-size: 10.5px; font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.tag-fase  { background: var(--green-l); color: var(--green); }
+.tag-part  { background: var(--gray-100); color: var(--gray-600); }
+.card-title {
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--gray-900);
+}
+
+/* ── EXPANDABLE BODY ─────────────────────────────────── */
+.card-body { display: none; padding: 12px 16px 14px; flex-direction: column; gap: 10px; }
+.card-body.open { display: flex; }
+
+.block {
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.block-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 4px;
+}
+.block-text { font-size: 13.5px; line-height: 1.55; }
+
+.block-prob  { background: var(--red-l);   border-left: 3px solid var(--red); }
+.block-prob .block-label  { color: var(--red); }
+.block-prob .block-text   { color: #7B241C; }
+
+.block-sol   { background: var(--green-l); border-left: 3px solid var(--green); }
+.block-sol .block-label   { color: var(--green); }
+.block-sol .block-text    { color: #14532D; }
+
+.block-est   { background: var(--amber-l); border-left: 3px solid var(--amber); }
+.block-est .block-label   { color: var(--amber); }
+.block-est .block-text    { color: #78350F; }
+
+/* ── TOGGLE BTN ──────────────────────────────────────── */
+.toggle-btn {
+  width: 100%;
+  padding: 9px 16px;
+  background: none;
+  border: none;
+  border-top: 1px solid #F3F4F6;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--green);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background .12s;
+}
+.toggle-btn:hover { background: var(--gray-50); }
+.toggle-arrow { transition: transform .2s; font-size: 14px; }
+.toggle-arrow.open { transform: rotate(180deg); }
+
+/* ── NO RESULTS ──────────────────────────────────────── */
+.no-results {
+  background: var(--white);
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+}
+.no-results p { font-size: 14px; color: var(--gray-600); line-height: 1.6; }
+.no-results small { font-size: 12px; color: var(--gray-400); display: block; margin-top: 6px; }
+
+/* ── FOOTER STATS ─────────────────────────────────────── */
+.stats-bar {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-bottom: 14px;
+  padding: 0 2px;
+  min-height: 18px;
+}
+
+/* ── DIVIDER LABEL ────────────────────────────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin: 8px 0 10px;
+  padding: 0 2px;
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  </div>
+  <div class="header-text">
+    <h1>Asistente de calidad</h1>
+    <p>Manual de Estándares — 27 estándares</p>
+  </div>
+  <div class="offline-badge">
+    <div class="offline-dot"></div>
+    Sin internet
+  </div>
+</header>
+
+<main class="main">
+  <div class="search-wrap">
+    <div class="search-inner">
+      <div class="search-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <textarea id="query" placeholder="Describe lo que vas a hacer hoy..." rows="1"
+        oninput="autoResize(this)"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();buscar()}"></textarea>
+      <button class="search-btn" onclick="buscar()" id="sbtn" title="Buscar">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <span class="chip" onclick="setQ('ladrillos cerca del tablero eléctrico')">ladrillos cerca del tablero</span>
+    <span class="chip" onclick="setQ('enchape cerámica baño')">enchape cerámica</span>
+    <span class="chip" onclick="setQ('vaciar concreto columna')">vaciar concreto</span>
+    <span class="chip" onclick="setQ('encofrado sellado')">encofrado</span>
+    <span class="chip" onclick="setQ('drywall montantes')">drywall</span>
+    <span class="chip" onclick="setQ('acero prelosa')">acero prelosa</span>
+    <span class="chip" onclick="setQ('tubería desagüe muro')">tubería desagüe</span>
+    <span class="chip" onclick="setQ('topografía trazo spray')">trazo spray</span>
+  </div>
+
+  <div class="stats-bar" id="statsbar"></div>
+  <div class="results" id="results">
+    <div class="empty">
+      <div class="empty-icon">🏗</div>
+      <p>Escribe lo que vas a hacer<br>y te muestro <strong>qué estándares aplicar</strong>.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const DB = [
+  {
+    id:1, fase:"Acabados húmedos", partida:"Inst. eléctricas",
+    titulo:"Marcar orientación con letra F en el ladrillo para cortes de cajas metálicas",
+    concepto:"Durante el asentado de ladrillos, el personal de tabiquería comete errores en la orientación de los cortes para cajas metálicas. Se debe marcar con la letra F la cara correcta donde va el corte.",
+    problema:"",
+    estandar:"",
+    keywords:["ladrillo","tabiquería","corte","caja","metálica","orientación","asentado","electricidad","interruptor"]
+  },
+  {
+    id:2, fase:"Acabados húmedos", partida:"Inst. sanitarias",
+    titulo:"Señalizar tuberías de IISS donde intersecten con los muros",
+    concepto:"Antes de asentar ladrillos, marcar en el muro donde pasan las tuberías sanitarias para evitar que los anclajes las perforen.",
+    problema:"Perforación accidental de tuberías sanitarias al clavar anclajes de ladrillo.",
+    estandar:"",
+    keywords:["tubería","muro","señalizar","IISS","sanitaria","ladrillo","anclaje","instalación","agua"]
+  },
+  {
+    id:3, fase:"Acabados húmedos", partida:"Tarrajeo",
+    titulo:"Colocar plástico debajo de las plataformas de tarrajeo",
+    concepto:"Poner plástico debajo de las plataformas de trabajo para que las rebabas no caigan sobre el trazo topográfico y lo borren.",
+    problema:"Si no se coloca el plástico, las rebabas del tarrajeo borran el trazo topográfico y hay que volver a trazar.",
+    estandar:"",
+    keywords:["plástico","plataforma","tarrajeo","trazo","topografía","rebaba","mezcla"]
+  },
+  {
+    id:4, fase:"Acabados húmedos", partida:"Tabiquería",
+    titulo:"Colocar separadores para acero y tuberías en viguetas de ladrillo blanco",
+    concepto:"En vaciados de viguetas de concreto en muros de ladrillo blanco, colocar separadores que mantengan el acero y las tuberías en su posición correcta para cumplir el recubrimiento.",
+    problema:"Sin separadores, el acero y las tuberías pierden su posición y no se cumple el recubrimiento mínimo exigido.",
+    estandar:"",
+    keywords:["separador","acero","tubería","vigueta","concreto","ladrillo","blanco","recubrimiento","muro"]
+  },
+  {
+    id:5, fase:"Acabados húmedos", partida:"Tabiquería",
+    titulo:"Demarcar zona NO COPAR de 30 cm alrededor de la mezcladora",
+    concepto:"Marcar en el piso un círculo de 30 cm alrededor de donde está la mezcladora. Nadie debe copar (vaciar mezcla) dentro de esa zona.",
+    problema:"Si se copa cerca de la mezcladora, la mezcla la daña y genera retrabajos.",
+    estandar:"",
+    keywords:["mezcladora","copar","zona","demarcar","mezcla","tabiquería","círculo","radio"]
+  },
+  {
+    id:6, fase:"Acabados húmedos", partida:"Tabiquería",
+    titulo:"Colocar tuberías PVC de desagüe de 2\" para proteger la mezcladora del copado",
+    concepto:"Instalar tuberías PVC de desagüe pesada de 2 pulgadas en la zona de la mezcladora para evitar que la mezcla la dañe durante el copado.",
+    problema:"El copado sin protección daña la mezcladora y genera retrabajos costosos.",
+    estandar:"",
+    keywords:["PVC","tubería","mezcladora","copar","copado","desagüe","2 pulgadas","protección"]
+  },
+  {
+    id:7, fase:"Acabados húmedos", partida:"Tabiquería",
+    titulo:"Proteger el gabinete del tablero eléctrico durante el asentado de ladrillos",
+    concepto:"Antes de asentar ladrillos cerca de un tablero eléctrico, cubrir el gabinete completamente. También organizar las tuberías para evitar aglomeración.",
+    problema:"La mezcla entra al gabinete y daña cables. Las tuberías aglomeradas generan fisuras. Ambos casos requieren retrabajos.",
+    estandar:"",
+    keywords:["tablero","gabinete","eléctrico","ladrillo","asentado","mezcla","tubería","proteger","cubrir","electricidad"]
+  },
+  {
+    id:8, fase:"Acabados húmedos", partida:"Tabiquería",
+    titulo:"Colocar caja PVC blanca para la válvula de corte del nicho de gas",
+    concepto:"Al construir el nicho de gas, colocar una caja PVC blanca para la válvula de corte antes de terminar. Así se evita picar el nicho después para darle acabado.",
+    problema:"Sin la caja, el nicho queda con errores de acabado interno y hay que reperfilar.",
+    estandar:"",
+    keywords:["nicho","gas","válvula","corte","caja","PVC","blanco","tabiquería","acabado"]
+  },
+  {
+    id:9, fase:"Acabados húmedos", partida:"Enchape",
+    titulo:"Usar broca diamantada para los pases de salida de agua en el enchape",
+    concepto:"Cuando se perfore el enchape (cerámica, porcelanato) para sacar las salidas de agua, siempre usar broca diamantada. Nunca golpear ni usar broca común.",
+    problema:"Sin broca diamantada, el enchape se astilla y hay que reponer toda la pieza.",
+    estandar:"",
+    keywords:["broca","diamantada","enchape","cerámica","porcelanato","salida","agua","pase","perforar","baño","cocina"]
+  },
+  {
+    id:10, fase:"Acabados húmedos", partida:"Inst. sanitarias",
+    titulo:"Colocar malla gallinero para proteger las montantes durante el asentado",
+    concepto:"Antes de asentar ladrillos cerca de montantes de desagüe, colocar malla gallinero alrededor de las tuberías para que no se rompan si cae un ladrillo.",
+    problema:"Sin la malla, los ladrillos que se desprenden durante el asentado rompen las montantes de desagüe.",
+    estandar:"",
+    keywords:["malla","gallinero","montante","desagüe","ladrillo","asentado","tubería","caída","rotura","proteger"]
+  },
+  {
+    id:11, fase:"Acabados húmedos", partida:"Inst. sanitarias",
+    titulo:"Trazar en la losa donde la tubería de 4\" intersecta con el muro",
+    concepto:"Antes de anclar la tabiquería, marcar en la losa exactamente dónde pasa la tubería de desagüe de 4 pulgadas. Así el tabiquero sabe dónde no puede clavar.",
+    problema:"Los anclajes de tabiquería perforan las tuberías de desagüe si no están marcadas.",
+    estandar:"Por implementar",
+    keywords:["tubería","4 pulgadas","losa","muro","trazar","anclaje","tabiquería","desagüe","marcar","intersección"]
+  },
+  {
+    id:12, fase:"Acabados húmedos", partida:"Sardineles",
+    titulo:"Prefabricar sardineles en obra antes de colocar el porcelanato",
+    concepto:"Fabricar los sardineles en obra antes de colocar el porcelanato, en vez de hacerlos de manera tradicional con encofrado en el lugar.",
+    problema:"Con el método tradicional hay que perforar y encofrar sobre el porcelanato ya colocado, dañando tuberías de agua y desagüe.",
+    estandar:"",
+    keywords:["sardinel","porcelanato","encofrado","prefabricar","tubería","agua","desagüe","perforación","acabado"]
+  },
+  {
+    id:13, fase:"Acabados húmedos", partida:"Inst. sanitarias",
+    titulo:"Revisar ductos de desagüe con cámara 360° antes de cerrar con drywall",
+    concepto:"Antes de instalar las ventanas de inspección y cerrar los ductos con drywall, revisar el interior con una cámara 360° para detectar montantes rotas o dañadas.",
+    problema:"Si se cierra el drywall con montantes rotas adentro, después los daños afectan los acabados de los departamentos.",
+    estandar:"",
+    keywords:["cámara","360","ducto","desagüe","drywall","montante","inspección","revisar","cerrar","ventana"]
+  },
+  {
+    id:14, fase:"Acabados húmedos", partida:"Acabados húmedos",
+    titulo:"Hacer la prueba de estanqueidad de jardineras ANTES de pintar los muros",
+    concepto:"La prueba de agua de las jardineras debe hacerse antes de que se entreguen los acabados húmedos y antes de pintar. No al final.",
+    problema:"Si se prueba después de pintar, las filtraciones manchan y dañan los muros y la pintura, generando retrabajos.",
+    estandar:"Solicitar prueba de estanqueidad aprobada de jardineras antes del cierre de acabados húmedos.",
+    keywords:["estanqueidad","jardinera","prueba","agua","filtración","muro","pintura","acabado","humedad"]
+  },
+  {
+    id:15, fase:"Acabados secos", partida:"Drywall",
+    titulo:"Instalar ventanas de inspección DESPUÉS de terminar la tabiquería",
+    concepto:"Las ventanas de inspección de drywall deben colocarse al final de la tabiquería, no antes. Así se puede revisar el interior de los ductos antes de sellarlos.",
+    problema:"Sin ventanas de inspección, no se pueden detectar daños en las montantes internas.",
+    estandar:"Actualización de proceso de acabados secos.",
+    keywords:["ventana","inspección","drywall","tabiquería","ducto","montante","acabado","seco","instalar"]
+  },
+  {
+    id:16, fase:"Casco", partida:"Acero",
+    titulo:"Colocar separadores de concreto en la parte superior de la columna antes del vaciado de losa",
+    concepto:"Antes de vaciar la losa, colocar separadores de concreto a 5 cm del borde del encofrado en la parte superior de cada columna. Sirven como punto de inspección para verificar que el acero no se desalineó.",
+    problema:"Sin separadores, el acero de la columna se mueve durante el vaciado y pierde el recubrimiento mínimo.",
+    estandar:"",
+    keywords:["separador","concreto","columna","acero","vaciado","losa","encofrado","recubrimiento","inspección","alineamiento"]
+  },
+  {
+    id:17, fase:"Casco", partida:"Encofrado",
+    titulo:"Sellar la base del encofrado con yeso o diablo antes del vaciado",
+    concepto:"Antes de vaciar concreto en elementos verticales (columnas, placas), sellar la base del encofrado con yeso o diablo para que no escape el agua del concreto.",
+    problema:"Sin sellado, el concreto pierde sus fluidos por la base y quedan cangrejeras (vacíos) en el elemento estructural.",
+    estandar:"",
+    keywords:["encofrado","sello","sellado","yeso","diablo","concreto","vaciar","vaciado","columna","placa","cangrejera","segregación"]
+  },
+  {
+    id:18, fase:"Casco", partida:"Inst. eléctricas",
+    titulo:"Enchaquear con tecnopor las cachimbas para cintas LED en cocinas",
+    concepto:"En las placas de concreto, rodear con tecnopor las cachimbas (puntos de instalación eléctrica) para cintas LED en cocinas. El punto exacto se definirá después en acabados húmedos.",
+    problema:"Sin el tecnopor, si la cachimba queda ligeramente desplazada por el encofrado, hay que picar la placa para corregirla.",
+    estandar:"",
+    keywords:["tecnopor","cachimba","placa","LED","cocina","eléctrico","enchaquear","encofrado","picar"]
+  },
+  {
+    id:19, fase:"Casco", partida:"Inst. eléctricas",
+    titulo:"Enchaquear con tecnopor las cachimbas para tomacorrientes en mueble de cocina",
+    concepto:"En las losas, rodear con tecnopor las cachimbas para tomacorrientes en muebles de cocina. La posición final exacta se ajustará en acabados húmedos.",
+    problema:"Sin el tecnopor de protección, hay que picar la losa si la cachimba quedó desplazada.",
+    estandar:"",
+    keywords:["tecnopor","cachimba","losa","tomacorriente","mueble","cocina","eléctrico","enchaquear","picar"]
+  },
+  {
+    id:20, fase:"Casco", partida:"Topografía",
+    titulo:"Trazar con spray rojo el límite del sector de vaciado de concreto",
+    concepto:"Antes de vaciar concreto, marcar con spray rojo el límite exacto del sector programado para ese día. Nadie debe encofrar ni trabajar fuera de esa zona.",
+    problema:"Sin el trazo, los trabajadores extienden el trabajo fuera de la zona programada, generando improductividad.",
+    estandar:"",
+    keywords:["spray","rojo","trazo","sector","vaciado","concreto","límite","zona","programado","encofrado"]
+  },
+  {
+    id:21, fase:"Casco", partida:"Concreto",
+    titulo:"Proteger con film el acero vertical antes del vaciado de la losa",
+    concepto:"Antes de vaciar la losa, cubrir con film plástico el acero de los elementos verticales (columnas, placas) para que el concreto no salpique y se pegue.",
+    problema:"Sin el film, las salpicaduras del vaciado se pegan al acero y hay que limpiarlo manualmente después, lo cual toma mucho tiempo.",
+    estandar:"",
+    keywords:["film","plástico","acero","vertical","columna","placa","vaciado","losa","concreto","salpicadura","limpiar","proteger"]
+  },
+  {
+    id:22, fase:"Casco (prelosas)", partida:"Topografía",
+    titulo:"Trazar referencias en muros para ubicar tuberías empotradas en zonas de closets",
+    concepto:"En los muros, marcar referencias que indiquen exactamente dónde quedan las tuberías empotradas que están en zonas de closets o muebles. Así el carpintero sabe dónde no puede atornillar.",
+    problema:"Sin las marcas, al instalar closets o muebles se perforan las tuberías empotradas.",
+    estandar:"Por implementar",
+    keywords:["trazo","referencia","muro","tubería","empotrada","closet","mueble","prelosa","marcar","ubicación"]
+  },
+  {
+    id:23, fase:"Casco (prelosas)", partida:"Inst. eléctricas",
+    titulo:"Incluir pases de 2\" en prelosas para bajadas de interruptores",
+    concepto:"Al armar las prelosas, dejar pases (agujeros) de 2 pulgadas en los puntos donde irán las bajadas para interruptores. No hacerlos obliga a picar la prelosa después.",
+    problema:"Si no se dejan los pases, hay que picar la prelosa instalada para pasar los tubos, lo que daña la estructura.",
+    estandar:"",
+    keywords:["pase","prelosa","interruptor","bajada","2 pulgadas","tubería","eléctrico","picar","losa"]
+  },
+  {
+    id:24, fase:"Casco (prelosas)", partida:"Acero",
+    titulo:"Usar silleta para casetones de tecnopor y evitar hundimiento del recubrimiento",
+    concepto:"Al colocar casetones de tecnopor en las prelosas, usar silletas de soporte en vez de apoyarlos directamente. Así el tecnopor queda a la altura correcta y no se hunde.",
+    problema:"Sin silleta, el tecnopor se hunde y el recubrimiento de acero queda por debajo del mínimo requerido.",
+    estandar:"",
+    keywords:["silleta","casetón","tecnopor","prelosa","recubrimiento","acero","hundimiento","soporte","losa"]
+  },
+  {
+    id:25, fase:"Casco", partida:"Topografía",
+    titulo:"Diferenciar los trazos de muros usando referencias estructurales",
+    concepto:"Al trazar muros, usar referencias de elementos estructurales (columnas, ejes) para diferenciarlos claramente de otros tipos de trazos.",
+    problema:"Sin diferenciación, los trazos se confunden y se construyen muros en posiciones incorrectas.",
+    estandar:"",
+    keywords:["trazo","muro","referencia","estructural","columna","eje","diferenciación","topografía","marcar"]
+  },
+  {
+    id:26, fase:"Casco", partida:"Topografía",
+    titulo:"Usar spray para trazar en la prelosa y garantizar visibilidad",
+    concepto:"El trazo inicial en la prelosa con lápiz o yeso no se ve bien. Usar spray para marcar los trazos en la prelosa y garantizar que todos puedan verlos claramente.",
+    problema:"Los trazos poco visibles generan confusión y errores en la ubicación de elementos.",
+    estandar:"",
+    keywords:["spray","trazo","prelosa","visibilidad","confusión","marcar","topografía","losa","pintura"]
+  },
+  {
+    id:27, fase:"Muro pantalla", partida:"Concreto",
+    titulo:"Colocar grapas de acero cuando el sobrerecubrimiento sea mayor a 4 cm",
+    concepto:"Si al revisar un muro pantalla el recubrimiento de concreto es mayor a 4 cm (porque el acero se desvió), colocar refuerzo en forma de U (grapas) para que ese concreto extra no se desprenda.",
+    problema:"Sin las grapas, el concreto con sobrerecubrimiento se desprende con el tiempo.",
+    estandar:"",
+    keywords:["grapa","acero","sobrerecubrimiento","muro","pantalla","concreto","desprendimiento","recubrimiento","desviación"]
+  }
+];
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function setQ(text) {
+  const q = document.getElementById('query');
+  q.value = text;
+  autoResize(q);
+  buscar();
+}
+
+function tokenize(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 2);
+}
+
+function score(item, tokens) {
+  let s = 0;
+  const fields = [
+    item.titulo.toLowerCase(),
+    item.concepto.toLowerCase(),
+    item.problema.toLowerCase(),
+    item.fase.toLowerCase(),
+    item.partida.toLowerCase(),
+    item.keywords.join(' ').toLowerCase()
+  ].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  tokens.forEach(t => {
+    if (fields.includes(t)) {
+      if (item.keywords.some(k => k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(t))) s += 3;
+      else if (item.titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(t)) s += 2;
+      else s += 1;
+    }
+  });
+  return s;
+}
+
+function buscar() {
+  const q = document.getElementById('query').value.trim();
+  const resultsEl = document.getElementById('results');
+  const statsEl = document.getElementById('statsbar');
+
+  if (!q) {
+    resultsEl.innerHTML = '<div class="empty"><div class="empty-icon">🏗</div><p>Escribe lo que vas a hacer<br>y te muestro <strong>qué estándares aplicar</strong>.</p></div>';
+    statsEl.textContent = '';
+    return;
+  }
+
+  const tokens = tokenize(q);
+  if (!tokens.length) return;
+
+  const scored = DB
+    .map(item => ({ item, s: score(item, tokens) }))
+    .filter(x => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, 5);
+
+  statsEl.textContent = scored.length
+    ? `${scored.length} estándar${scored.length > 1 ? 'es' : ''} encontrado${scored.length > 1 ? 's' : ''} para "${q}"`
+    : '';
+
+  if (!scored.length) {
+    resultsEl.innerHTML = `
+      <div class="no-results">
+        <p>No encontré estándares para <strong>"${q}"</strong>.</p>
+        <small>Prueba con otras palabras: ladrillo, encofrado, tubería, acero, concreto...</small>
+      </div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = scored.map(({item, s}, i) => {
+    const maxS = scored[0].s;
+    const rel = s / maxS;
+    const ringClass = rel > .7 ? 'score-high' : rel > .4 ? 'score-mid' : 'score-low';
+    const pct = Math.round(rel * 100);
+
+    const hasProblem  = item.problema && item.problema.trim();
+    const hasEstandar = item.estandar && item.estandar.trim() && item.estandar !== 'Por implementar';
+    const isPending   = item.estandar === 'Por implementar';
+
+    const bodyBlocks = [
+      `<div class="block block-sol">
+        <div class="block-label">Qué hacer</div>
+        <div class="block-text">${item.concepto}</div>
+      </div>`,
+      hasProblem ? `<div class="block block-prob">
+        <div class="block-label">Si no lo haces</div>
+        <div class="block-text">${item.problema}</div>
+      </div>` : '',
+      hasEstandar ? `<div class="block block-est">
+        <div class="block-label">Estándar oficial</div>
+        <div class="block-text">${item.estandar}</div>
+      </div>` : '',
+      isPending ? `<div class="block block-est">
+        <div class="block-label">Estado</div>
+        <div class="block-text">Por implementar — consulta con tu supervisor.</div>
+      </div>` : ''
+    ].filter(Boolean).join('');
+
+    return `
+    <div class="result-card" style="animation-delay:${i*0.05}s">
+      <div class="card-top">
+        <div class="score-ring ${ringClass}">${pct}%</div>
+        <div class="card-meta">
+          <div class="card-tags">
+            <span class="tag tag-fase">${item.fase}</span>
+            <span class="tag tag-part">${item.partida}</span>
+          </div>
+          <div class="card-title">${item.titulo}</div>
+        </div>
+      </div>
+      <div class="card-body" id="body-${item.id}">${bodyBlocks}</div>
+      <button class="toggle-btn" onclick="toggle(${item.id}, this)">
+        Ver detalle
+        <span class="toggle-arrow" id="arrow-${item.id}">▾</span>
+      </button>
+    </div>`;
+  }).join('');
+
+  if (scored.length === 1) toggle(scored[0].item.id, document.querySelector('.toggle-btn'));
+}
+
+function toggle(id, btn) {
+  const body  = document.getElementById('body-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const open  = body.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+  btn.childNodes[0].textContent = open ? 'Ocultar detalle ' : 'Ver detalle ';
+}
+
+document.getElementById('query').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); buscar(); }
+});
+</script>
+</body>
+</html>
