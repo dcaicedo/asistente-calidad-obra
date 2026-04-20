@@ -31,7 +31,7 @@ Funciona **sin internet**, directo desde el celular o tablet, sin instalar ningu
 Abre este link en el navegador (Chrome o Safari):
 
 ```
-https://TU-USUARIO.github.io/asistente-calidad-obra/asistente_calidad.html
+https://dcaicedo.github.io/asistente-calidad-obra/asistente_calidad.html
 ```
 
 > Reemplaza `TU-USUARIO` con tu nombre de usuario de GitHub.
